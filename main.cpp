@@ -16,6 +16,11 @@ float currTime = 0;
 float timeStep = 0.02;
 float CRCoeff= 1.0;
 
+float DraggCoeff= 0.00;
+float FrictionCoeff= 0.00;
+
+int move_dir = 0;
+
 Scene scene;
 
 Eigen::MatrixXd platV;
@@ -24,9 +29,9 @@ Eigen::MatrixXi platT;
 Eigen::RowVector3d platCOM;
 Eigen::RowVector4d platOrientation;
 
-void createPlatform()
+void createPlatform(double temp_width = 500.0,double temp_w = 20.0)
 {
-  double platWidth=100.0;
+  double platWidth=temp_width;
   platCOM<<0.0,-5.0,-0.0;
   platV.resize(9,3);
   platF.resize(12,3);
@@ -35,11 +40,11 @@ void createPlatform()
   -platWidth,0.0,platWidth,
   platWidth,0.0,platWidth,
   platWidth,0.0, -platWidth,
-  -platWidth,-platWidth/10.0,-platWidth,
-  -platWidth,-platWidth/10.0,platWidth,
-  platWidth,-platWidth/10.0,platWidth,
-  platWidth,-platWidth/10.0, -platWidth,
-  0.0,-platWidth/20.0, 0.0;
+  -platWidth,-platWidth/temp_w,-platWidth,
+  -platWidth,-platWidth/temp_w,platWidth,
+  platWidth,-platWidth/temp_w,platWidth,
+  platWidth,-platWidth/temp_w, -platWidth,
+  0.0,-platWidth/temp_w, 0.0;
   platF<<0,1,2,
   2,3,0,
   6,5,4,
@@ -78,7 +83,7 @@ void updateMeshes(igl::opengl::glfw::Viewer &viewer)
   //viewer.core.align_camera_center(scene.meshes[0].currV);
 }
 
-bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier)
+bool key_down(igl::opengl::glfw::Viewer &viewer, int key, int modifier)
 {
   if (key == ' ')
   {
@@ -89,11 +94,55 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
       cout<<"Simulation paused"<<endl;
     return true;
   }
-  
-  if (key == 'S')
+    
+    cout << "-----" << key << endl;
+    
+    if (key == 265)
+    {
+        move_dir = 1;
+        scene.updateScene(timeStep, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
+        if (viewer.core.is_animating){
+            return true;
+        }
+        return true;
+    }
+    if (key == 263)
+    {
+        move_dir = 2;
+        scene.updateScene(timeStep, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
+        if (viewer.core.is_animating){
+            return true;
+        }
+        return true;
+    }
+    if (key == 262)
+    {
+        move_dir = 3;
+        scene.updateScene(timeStep, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
+        if (viewer.core.is_animating){
+            return true;
+        }
+        return true;
+    }
+    
+    if (key == 'B')
+    {
+        move_dir = 5;
+        scene.updateScene(timeStep, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
+        if (viewer.core.is_animating){
+            return true;
+        }
+        return true;
+    }
+    
+    
+  if (key == 264)
   {
+      move_dir = 0;
+      scene.updateScene(timeStep, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
+      
     if (!viewer.core.is_animating){
-      scene.updateScene(timeStep, CRCoeff);
+      scene.updateScene(timeStep, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
       currTime+=timeStep;
       updateMeshes(viewer);
       std::cout <<"currTime: "<<currTime<<std::endl;
@@ -112,7 +161,7 @@ bool pre_draw(igl::opengl::glfw::Viewer &viewer)
   using namespace std;
   
   if (viewer.core.is_animating){
-    scene.updateScene(timeStep, CRCoeff);
+    scene.updateScene(timeStep, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
     currTime+=timeStep;
     //cout <<"currTime: "<<currTime<<endl;
     updateMeshes(viewer);
@@ -134,7 +183,8 @@ class CustomMenu : public igl::opengl::glfw::imgui::ImGuiMenu
     if (ImGui::CollapsingHeader("Algorithm Options", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::InputFloat("CR Coeff",&CRCoeff,0,0,3);
-      
+      ImGui::InputFloat("Drag Coeff",&DraggCoeff,0,0,3);
+      ImGui::InputFloat("Friction Coeff",&FrictionCoeff,0,0,3);
       
       if (ImGui::InputFloat("Time Step", &timeStep)) {
         mgpViewer.core.animation_max_fps = (((int)1.0/timeStep));
@@ -160,11 +210,72 @@ int main(int argc, char *argv[])
   //create platform
   createPlatform();
   scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
-  
+    
+    //obstacles
+    createPlatform(50);
+  platCOM<<-100.0,-5.0,-0.0;
+  platOrientation<<1.0,1.0,0.0,1.0;
+    scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
+    
+    createPlatform(50);
+    platCOM<<-100.0,-5.0,-0.0;
+    platOrientation<<1.0,1.0,0.0,1.0;
+    scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
+    
+    
+    createPlatform(50);
+    platCOM<<-200.0,-5.0,-0.0;
+    platOrientation<<1.0,1.0,0.0,1.0;
+    scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
+    
+    createPlatform(50);
+    platCOM<<-300.0,-5.0,-0.0;
+    platOrientation<<1.0,1.0,0.0,1.0;
+    scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
+    
+    for(int i =0; i < 10; i++){
+        createPlatform(50);
+        platCOM<<-300.0,-5.0,-5.0* i* 10;
+        platOrientation<<1.0,1.0,1.0,1.0;
+        scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
+    }
+    
+    for(int i =0; i < 10; i++){
+        createPlatform(50);
+        platCOM<<500 + -1.0* i* 120,50.0,500;
+        platOrientation<<1.0,1.0,1.0,1.0;
+        scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
+    }
+    
+    //wall
+    for(int i =0; i < 10; i++){
+        createPlatform(50,5);
+        platCOM<<500 ,50.0,450 + -1.0* i* 100;
+        platOrientation<<1.0,0.0,0.0,1.0;
+        scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
+    }
+    
+    
+    //Wind generator
+    createPlatform(70);
+    platCOM<<-5.0,200.0,-500;
+    platOrientation<<1.0,1.0,1.0,1.0;
+    scene.addMesh(platV, platF, platT, 10000.0, false, platCOM, platOrientation,false,true);
+    
+    //Wind generator
+    createPlatform(70);
+    platCOM<<100.0,200.0,500;
+    platOrientation<<1.0,1.0,1.0,1.0;
+    scene.addMesh(platV, platF, platT, 10000.0, false, platCOM, platOrientation,false,true);
+    
+    createPlatform(500);
+    platCOM<<-700.0,-5.0,-0.0;
+    platOrientation<<1.0,1.0,0.0,2.0;
+    scene.addMesh(platV, platF, platT, 10000.0, true, platCOM, platOrientation);
   //load scene from file
   scene.loadScene(std::string(argv[1]),std::string(argv[2]));
 
-  scene.updateScene(0.0, CRCoeff);
+  scene.updateScene(0.0, CRCoeff, DraggCoeff, FrictionCoeff,move_dir);
   
   // Viewer Settings
   for (int i=0;i<scene.meshes.size();i++){
